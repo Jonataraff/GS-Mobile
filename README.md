@@ -1,3 +1,9 @@
+**INTEGRANTES**
+-Diogo Julio - RM553837
+-Jonata Rafael - RM552939
+
+
+
 🚀 SkillUpPlus 2030+
 
 Plataforma de Requalificação Digital para o Futuro do Trabalho
