@@ -1,24 +1,54 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { Stack, Redirect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { AuthProvider, useAuth } from '../hooks/AuthContext';
+import * as SplashScreen from 'expo-splash-screen';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+// Manter a splash screen visível enquanto buscamos os recursos
+SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+// Componente de navegação principal com a lógica de autenticação
+function RootLayoutNav() {
+  const { user, isLoading } = useAuth();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // Mostrar tela de carregamento ou splash screen enquanto o estado é carregado
+  if (isLoading) {
+    return null;
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DefaultTheme}>
       <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+        {/* Telas de Autenticação (sempre disponíveis) */}
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
+
+        {/* Telas de Aplicação (apenas se logado) */}
+        {user && (
+          <Stack.Group>
+            <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+            {/* Outras telas acessíveis apenas quando logado */}
+          </Stack.Group>
+        )}
+        {/* A tela de detalhes do curso deve ser acessível apenas se o usuário estiver logado */}
+        {user && (
+          <Stack.Screen name="course-detail" options={{ title: 'Detalhes do Curso' }} />
+        )}
+
+        {/* Redirecionamento para Login se não estiver logado e tentando acessar uma tela restrita */}
+        {!user && <Redirect href="/login" />}
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
+  );
+}
+
+// Componente principal que envolve tudo com o AuthProvider
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }
